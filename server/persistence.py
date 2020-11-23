@@ -4,10 +4,10 @@ from pymongo import MongoClient
 class Persistence:
     def __init__(self):
         client = MongoClient()
-        self.db = client.db_final
-        self.driver_collection = self.db.driver_collection
-        self.route_collection = self.route_collection
-        self.assignment_collection = self.db.assignment_collection
+        self.db = client.test
+        self.driver_collection = self.db.drivers
+        self.route_collection = self.db.routes
+        self.assignment_collection = self.db.assignments
     
 
     def get_assignment_by_index(self, index):
@@ -21,11 +21,57 @@ class Persistence:
     that satisfies the query, print them all (one after the other)).
     """
     def get_by_name(self, first_name, last_name):
+        print(first_name, last_name)
+        
+        query = {'$and':[
+            {"First": {"$in" :[first_name]}},
+            {"Last": {"$in" :[last_name]}},
+            ]}
 
-        #Get the ids from driver_collection like first_and last name 
+        cursor_driver = self.driver_collection.find(query)
 
-        #Get the docs with one of those ids from assignment_collection
-        print("get_by_name")
+        id_set = set()
+        driver_assignment_dict = {}
+        driver_route_dict = {}
+        driver_information = list()
+        for doc in cursor_driver:
+            id_set.add(doc.get("ID"))
+            driver_assignment_dict[doc.get("ID")] = set()
+            driver_route_dict[doc.get("ID")] = list()
+            driver_information.append(doc)
+        
+        query = {"DriverID": {"$in": list(id_set)}}
+
+        cursor_assignment = self.assignment_collection.find(query)
+
+
+        route_set = set()
+        for doc in cursor_assignment:
+            route_set.add(doc.get("RouteNumber"))
+            driver_assignment_dict[doc.get("DriverID")].add(doc.get("RouteNumber"))
+
+        
+        query = {"RouteNumber": {"$in": list(route_set)}}
+
+        cursor_routes = self.route_collection.find(query)
+        
+        for doc in cursor_routes:
+            for driver in driver_assignment_dict:
+                if doc.get("RouteNumber") in driver_assignment_dict[driver]:
+                    driver_route_dict[driver].append(str(doc))
+        
+
+        to_Return = list()
+
+        for driver in driver_information:
+            theid = driver.get("ID")
+            to_Return.append((driver, driver_route_dict[theid]))
+            #print(theid)
+        
+        return to_Return
+
+        
+
 
     """
     The program should get the name of a city, and print out all the routes that go through the city
@@ -70,3 +116,7 @@ class Persistence:
 
         print("get_is_there_a_route")
 
+p = Persistence()
+
+#p.get_by_name("Jack", "Doe")
+print(p.get_by_name("Jack", "Doe"))
