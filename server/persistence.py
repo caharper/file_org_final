@@ -2,6 +2,8 @@ import pymongo
 from pymongo import MongoClient
 
 class Persistence:
+    
+    
     def __init__(self):
         client = MongoClient()
         self.db = client.test
@@ -81,8 +83,54 @@ class Persistence:
         #Get the route ids that have city in to: OR from: fields in route_collection
 
         #return all docs with one of those ids in assignment_collection
+        #do a query on routes_collection with city_a in from: and city_b in to:
+        query1 = {"DestinationCity": {"$in" :[city]}}
+        query2 = {"DepartureCity": {"$in" :[city]}}
+        
+        
+        cursor1 = self.route_collection.find(query1)
+        cursor2 = self.route_collection.find(query2)
 
-        print("get_by_city")
+        destination_id_set = set()
+        departure_id_set = set()
+
+        destination_content = {}
+        destination_dict = {}
+        for doc in cursor1:
+            destination_id_set.add(doc.get("RouteNumber"))
+            destination_dict[doc.get("RouteNumber")] = list()
+            destination_content[doc.get("RouteNumber")] = doc
+        
+        departure_content = {}
+        departure_dict = {}
+        for doc in cursor2:
+            departure_id_set.add(doc.get("RouteNumber"))
+            departure_dict[doc.get("RouteNumber")] = list()
+            departure_content[doc.get("RouteNumber")] = doc
+        
+        query3 = {"RouteNumber": {"$in": list(destination_id_set)}}
+        query4 = {"RouteNumber": {"$in": list(departure_id_set)}}
+
+        cursor3 = self.assignment_collection.find(query3)
+        cursor4 = self.assignment_collection.find(query4)
+
+        for doc in cursor3:
+            destination_dict[doc.get("RouteNumber")].append(doc.get("Day"))
+        
+        for doc in cursor4:
+            departure_dict[doc.get("RouteNumber")].append(doc.get("Day"))
+
+        
+        destination_return = list()
+        for route in destination_dict:
+            destination_return.append((destination_content[route],destination_dict[route]))
+
+        departure_return = list()
+        for route in departure_dict:
+            departure_return.append((departure_content[route], departure_dict[route]))
+
+        return destination_return, departure_return
+        
 
     
     """
@@ -107,6 +155,29 @@ class Persistence:
     """
     def get_is_there_a_route(self, city_a, city_b):
         #do a query on routes_collection with city_a in from: and city_b in to:
+        query1 = {'$and':[
+            {"DepartureCity": {"$in" :[city_a]}},
+            {"DestinationCity": {"$in" :[city_b]}},
+            ]}
+        
+        query2 = {'$and':[
+            {"DestinationCity": {"$in" :[city_a]}},
+            {"DepartureCity": {"$in" :[city_b]}},
+            ]}
+        
+        cursor1 = self.route_collection.find(query1)
+
+        cursor2 = self.route_collection.find(query2)
+
+        double_cursor_list = list(cursor1) + list(cursor2)
+
+        doc_dict = {}
+
+        for doc in double_cursor_list:
+            if doc['RouteNumber'] in doc_dict:
+                continue
+            else:
+                doc_dict[doc['RouteNumber']] = str(doc)
         
         #do a query on routes_collection with city_b in from: and city_a in to:
 
@@ -114,9 +185,12 @@ class Persistence:
 
         #return the merged list
 
-        print("get_is_there_a_route")
+        return doc_dict
+
 
 p = Persistence()
 
 #p.get_by_name("Jack", "Doe")
-print(p.get_by_name("Jack", "Doe"))
+# print(p.get_by_name("Jack", "Doe"))
+#print(p.get_is_there_a_route("Dallas", "Houston"))
+print(p.get_by_city("Houston"))
