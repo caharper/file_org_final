@@ -1,4 +1,4 @@
-ID1, ID2, DAY,
+DriverID, RouteNumber, Day,
 100A,1,M
 100B,1,T
 100C,1,W

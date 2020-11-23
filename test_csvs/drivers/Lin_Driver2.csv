@@ -1,4 +1,4 @@
-ID, First, Last, Age, City, State
+ID, FirstName, LastName, Age, City, State
 100A,John,Doe,40,Dallas,TX
 100B,Jack,Doe,30,Houston,TX
 100C,Mary,Doe,35,Waco,TX
