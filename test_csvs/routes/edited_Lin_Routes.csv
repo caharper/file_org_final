@@ -1,5 +1,9 @@
 1,Route_1,Dallas,TX,Houston,TX,0,7,0,5,15
-2,Route_2,Houston ,TX,Waco,TX,0,11,0,4,0
+1,Route_2,Houston ,TX,Waco,TX,0,11,0,4,0
 A1345,,Waco,TX,Dallas,TX,0,20,0,72,0
 4B7,Express,Dallas,BX,,TX,5,-1,30,2.5,61
 5#!1,,,,,,,,,,
+A1345,,Yukon,TX,Dallas,TX,0,20,0,72,0
+A74Y2,Good,Chicago,IL,Detroit,MI,0,0,0,3,0
+GR3AT,Good,New York,NY,Dallas,TX,0,0,0,5,0
+5432A,Bad,Waco,TX,Los Angeles,CA,0,1,0,20,0
