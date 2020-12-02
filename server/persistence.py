@@ -19,7 +19,7 @@ class Persistence:
 
     """
     The program should get the name of a driver (first and last), and print out the driver’s
-    information, together with the route that the driver is assigned to. (If there is multiple drivers
+    information, together with the route that the driver is assigned to. (If there are multiple drivers
     that satisfies the query, print them all (one after the other)).
     """
     def get_by_name(self, first_name, last_name):
@@ -138,14 +138,63 @@ class Persistence:
     including the name and ID of the driver that is assigned to it
     """
     def get_by_route(self, route):
-        #get the route information, including its id (maybe check dont get multiple names back) out of route_collection
 
-        #go look in assignments by route_id and get all assignements (retrieving driver ids)
+        query1 = {"RouteNumber": {"$in" :[route]}}
 
-        #get get out all the drivers that are in the list of assignment ids
+        cursor1 = self.route_collection.find(query1)
 
-        print("get_by_route")
+        route_ids = {}
+        for c in cursor1:
+            print(c['RouteNumber'])
+            route_ids[c['RouteNumber']] = c
+        
+        route_keys = route_ids.keys()
+        query2 = {"RouteNumber": {"$in": list(route_keys)}}
 
+        cursor2 = self.assignment_collection.find(query2)
+
+        assignment_ids = {}
+        for c in cursor2:
+            
+            if c['DriverID'] not in assignment_ids:
+                assignment_ids[c['DriverID']] = list()
+                assignment_ids[c['DriverID']].append(c)
+            else:
+                assignment_ids[c['DriverID']].append(c)
+        
+        assignment_keys = assignment_ids.keys()
+
+        query3 = {"ID": {"$in": list(assignment_keys)}}
+
+        cursor3 = self.driver_collection.find(query3)
+
+        driver_ids = {}
+
+        for c in cursor3:
+            driver_ids[c['ID']] = c
+        
+        to_Return = list()
+
+        for driver in assignment_ids:
+            
+            for assignment in assignment_ids[driver]:
+                to_ret = "\nRoute:\n" + str(route_ids[assignment['RouteNumber']])
+                to_ret += "\nOnDay: " + assignment['Day']
+                to_ret += "\nWithDriver:\n" + str(driver_ids[assignment['DriverID']])
+                # print(to_ret)
+                to_Return.append((route_ids[assignment['RouteNumber']], assignment['Day'], driver_ids[assignment['DriverID']]))
+                #to_Return.append(to_ret)
+                
+        return to_Return
+            
+
+
+
+    
+         
+
+
+        
 
     """
     The program should get the name of two cities, and respond if there is a bus route that go from
@@ -160,37 +209,65 @@ class Persistence:
             {"DestinationCity": {"$in" :[city_b]}},
             ]}
         
-        query2 = {'$and':[
-            {"DestinationCity": {"$in" :[city_a]}},
-            {"DepartureCity": {"$in" :[city_b]}},
-            ]}
+        # query2 = {'$and':[
+        #     {"DestinationCity": {"$in" :[city_a]}},
+        #     {"DepartureCity": {"$in" :[city_b]}},
+        #     ]}
         
         cursor1 = self.route_collection.find(query1)
 
-        cursor2 = self.route_collection.find(query2)
+        # cursor2 = self.route_collection.find(query2)
 
-        double_cursor_list = list(cursor1) + list(cursor2)
+        # double_cursor_list = list(cursor1) + list(cursor2)
 
-        doc_dict = {}
-
-        for doc in double_cursor_list:
-            if doc['RouteNumber'] in doc_dict:
-                continue
-            else:
-                doc_dict[doc['RouteNumber']] = str(doc)
+        route_ids = {}
         
-        #do a query on routes_collection with city_b in from: and city_a in to:
+        for c in cursor1:
+            # print(c['RouteNumber'])
+            route_ids[c['RouteNumber']] = c
+        
+        route_keys = route_ids.keys()
+        query2 = {"RouteNumber": {"$in": list(route_keys)}}
 
-        #Merge the two lists by ids
+        cursor2 = self.assignment_collection.find(query2)
 
-        #return the merged list
+        assignment_ids = {}
+        for c in cursor2:
+            
+            if c['DriverID'] not in assignment_ids:
+                assignment_ids[c['DriverID']] = list()
+                assignment_ids[c['DriverID']].append(c)
+            else:
+                assignment_ids[c['DriverID']].append(c)
+        
+        assignment_keys = assignment_ids.keys()
 
-        return doc_dict
+        query3 = {"ID": {"$in": list(assignment_keys)}}
+
+        cursor3 = self.driver_collection.find(query3)
+
+        driver_ids = {}
+
+        for c in cursor3:
+            driver_ids[c['ID']] = c
+        
+        to_Return = list()
+
+        for driver in assignment_ids:
+            
+            for assignment in assignment_ids[driver]:
+                to_ret = "\nRoute:\n" + str(route_ids[assignment['RouteNumber']])
+                to_ret += "\nOnDay: " + assignment['Day']
+                to_ret += "\nWithDriver:\n" + str(driver_ids[assignment['DriverID']])
+                
+                to_Return.append(to_ret)
+        print(len(to_Return))
+        return to_Return
 
 
-p = Persistence()
+# p = Persistence()
 
-#p.get_by_name("Jack", "Doe")
-# print(p.get_by_name("Jack", "Doe"))
-#print(p.get_is_there_a_route("Dallas", "Houston"))
-print(p.get_by_city("Houston"))
+# p.get_by_name("Jack", "Doe")
+# print(p.get_is_there_a_route("Dallas", "Houston"))
+# print(p.get_by_city("Dallas"))
+# print(p.get_by_route(2))
