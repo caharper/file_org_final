@@ -1,4 +1,5 @@
 import PySimpleGUI as sg
+import os
 
 #sg.theme('BluePurple')
 
@@ -22,13 +23,13 @@ output = [
 ]
 
 route_csv = [[sg.Text(text='Routes CSV', font=('Arial', 15))],
-            [sg.InputText(key='route_path', size=(25,1)), sg.FolderBrowse()]]
+            [sg.InputText(key='route_path', size=(25,1)), sg.FileBrowse()]]
 
 driver_csv = [[sg.Text(text='Drivers CSV', font=('Arial', 15))],
-            [sg.InputText(key='driver_path', size=(25,1)), sg.FolderBrowse()]]
+            [sg.InputText(key='driver_path', size=(25,1)), sg.FileBrowse()]]
 
 assignments_csv = [[sg.Text(text='Assignments CSV', font=('Arial', 15))],
-            [sg.InputText(key='assignments_path', size=(25,1)), sg.FolderBrowse()]]
+            [sg.InputText(key='assignments_path', size=(25,1)), sg.FileBrowse()]]
 
 layout = [query_buttons,
         [sg.HorizontalSeparator(color=None, pad=None, key=None, k=None)],
@@ -173,11 +174,6 @@ def get_route_info_by_city(city_1, city_2):
         route["driver_first_name"], route["driver_ID"])
     return(route_info)  
 
-######################################################## DB LOADING ########################################################
-def load_db(path):
-    # Pass path to back end to start up DB
-    print(path)
-
 
 ######################################################## EVENT LOOP ########################################################
 
@@ -254,9 +250,11 @@ while True:  # Event Loop
 
     if event == 'load_data':
         # Submit path to back end
-        route_path = load_db(window['route_path'].Get())
-        driver_path = load_db(window['driver_path'].Get())
-        assignments_path = load_db(window['assignments_path'].Get())
+        route_path = window['route_path'].Get()
+        driver_path = window['driver_path'].Get()
+        assignments_path = window['assignments_path'].Get()
+        #print('validation.py {0} {1} {2}'.format(route_path, driver_path, assignments_path))
+        os.system('validation.py {0} {1} {2}'.format(route_path, driver_path, assignments_path))
 
 window.close()
 
