@@ -6,7 +6,7 @@ class Persistence:
     
     def __init__(self):
         client = MongoClient()
-        self.db = client.test
+        self.db = client.bus_db
         self.driver_collection = self.db.drivers
         self.route_collection = self.db.routes
         self.assignment_collection = self.db.assignments
@@ -26,8 +26,8 @@ class Persistence:
         print(first_name, last_name)
         
         query = {'$and':[
-            {"First": {"$in" :[first_name]}},
-            {"Last": {"$in" :[last_name]}},
+            {"FirstName": {"$in" :[first_name]}},
+            {"LastName": {"$in" :[last_name]}},
             ]}
 
         cursor_driver = self.driver_collection.find(query)
@@ -60,7 +60,7 @@ class Persistence:
         for doc in cursor_routes:
             for driver in driver_assignment_dict:
                 if doc.get("RouteNumber") in driver_assignment_dict[driver]:
-                    driver_route_dict[driver].append(str(doc))
+                    driver_route_dict[driver].append(doc)
         
 
         to_Return = list()

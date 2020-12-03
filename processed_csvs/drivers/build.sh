@@ -1,1 +1,1 @@
-mongoimport --type csv -d test -c drivers --headerline --drop drivers.csv
+mongoimport --type csv -d bus_db -c drivers --fields="ID,FirstName,LastName,Age,City,State" --drop drivers.csv
