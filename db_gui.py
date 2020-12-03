@@ -159,7 +159,7 @@ def get_route_info_by_id(route_num):
 
     # Handle Empty Response
     if len(matching_route) == 0:
-        return("No routes with the route number: {0}".format(route_num))
+        return("No assigned routes with the route number: {0}".format(route_num))
 
     matching_route = matching_route[0]
     # Format Response
@@ -183,7 +183,7 @@ def get_route_info_by_city(city_1, city_2):
 
     # Handle Empty Response
     if len(routes) == 0:
-        return("No routes between {0} and {1}".format(city_1, city_2))
+        return("No assigned routes between {0} and {1}".format(city_1, city_2))
 
     # Format Response
     # route = {
@@ -297,14 +297,17 @@ while True:  # Event Loop
         route_path = window['route_path'].Get()
         driver_path = window['driver_path'].Get()
         assignments_path = window['assignments_path'].Get()
+
+        # Start Mongodb Instance
+        #os.system('')
         
         # Validate Input Data
-        #os.system('python validation.py --"{0}" --"{1}" --"{2}"'.format(route_path, driver_path, assignments_path))
+        os.system('python validation.py --"{0}" --"{1}" --"{2}"'.format(route_path, driver_path, assignments_path))
         
         # Load validated data into mongo
-        #os.system('mongoimport --type csv -d bus_db -c drivers --fields="ID,FirstName,LastName,Age,City,State" --drop ./processed_csvs/drivers/drivers.csv')
-        #os.system('mongoimport --type csv -d bus_db -c assignments --fields="DriverID,RouteNumber,Day" --drop ./processed_csvs/assignments/assignments.csv')
-        #os.system('mongoimport --type csv -d bus_db -c routes --fields="RouteNumber,RouteName,DepartureCity,DepartureCode,DestinationCity,DestinationCode,RouteTypeCode,DepartureTimeHour,DepartureTimeMin,TravelTimeHour,TravelTimeMin" --drop ./processed_csvs/routes/routes.csv')
+        os.system('mongoimport --type csv -d bus_db -c drivers --fields="ID,FirstName,LastName,Age,City,State" --drop ./processed_csvs/drivers/drivers.csv')
+        os.system('mongoimport --type csv -d bus_db -c assignments --fields="DriverID,RouteNumber,Day" --drop ./processed_csvs/assignments/assignments.csv')
+        os.system('mongoimport --type csv -d bus_db -c routes --fields="RouteNumber,RouteName,DepartureCity,DepartureCode,DestinationCity,DestinationCode,RouteTypeCode,DepartureTimeHour,DepartureTimeMin,TravelTimeHour,TravelTimeMin" --drop ./processed_csvs/routes/routes.csv')
         
         # Create Query object
         database = persistence.Persistence()
