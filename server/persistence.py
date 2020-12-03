@@ -181,7 +181,7 @@ class Persistence:
                 to_ret = "\nRoute:\n" + str(route_ids[assignment['RouteNumber']])
                 to_ret += "\nOnDay: " + assignment['Day']
                 to_ret += "\nWithDriver:\n" + str(driver_ids[assignment['DriverID']])
-                # print(to_ret)
+                #print(to_ret)
                 to_Return.append((route_ids[assignment['RouteNumber']], assignment['Day'], driver_ids[assignment['DriverID']]))
                 #to_Return.append(to_ret)
                 
@@ -256,9 +256,10 @@ class Persistence:
         for driver in assignment_ids:
             
             for assignment in assignment_ids[driver]:
-                to_ret = "\nRoute:\n" + str(route_ids[assignment['RouteNumber']])
-                to_ret += "\nOnDay: " + assignment['Day']
-                to_ret += "\nWithDriver:\n" + str(driver_ids[assignment['DriverID']])
+                to_ret = []
+                to_ret.append(route_ids[assignment['RouteNumber']])
+                to_ret.append(assignment['Day'])
+                to_ret.append(driver_ids[assignment['DriverID']])
                 
                 to_Return.append(to_ret)
         print(len(to_Return))

@@ -24,42 +24,15 @@ day_dict = {
 }
 
 a = persistence.Persistence()
-res = a.get_by_city("Dallas")
-arrivals = res[0]
-arrival_output = "Arrivals:\n"
-if len(arrivals) == 0:
-    arrival_output += "\tNone\n"
+res = a.get_is_there_a_route("New York", "Dallas")
+print(res)
+# route = res[0]
+# day = day_dict[res[1]][0]
+# driver_info = res[2]
 
-for r in arrivals:
-    route = r[0]
-    arrival_mins = route["DepartureTimeMin"] + route["TravelTimeMin"]
-    if arrival_mins < 10:
-        arrival_mins = "0{0}".format(arrival_mins)
-    arrival_hour = (route["DepartureTimeHour"] + route["TravelTimeHour"])%24
-    days_traveled = int((route["DepartureTimeHour"] + route["TravelTimeHour"])/24)
-    day = ""
-    if len(r[1]) > 0:
-        arr_day = day_dict[r[1][0]][1]
-        arr_day = (arr_day + days_traveled)%7
-        day = day_dict[day_dict[str(arr_day)]][0]
-    
-    arrival_time = "{0}:{1}".format(arrival_hour, arrival_mins)
-    arrival_output += "\t{0} {1} {2} - Service from: {3},{4}\n".format(route["RouteNumber"], arrival_time, day, route["DepartureCity"], route["DepartureCode"])
-
-
-departures = res[1]
-departure_output = "Departures:\n"
-if len(departures) == 0:
-    departure_output += "\tNone\n"
-
-for r in departures:
-    route = r[0]
-    day = day_dict[r[1][0]][0] if len(r[1]) > 0 else "" 
-    departure_mins = route["DepartureTimeMin"]
-    if departure_mins < 10:
-        departure_mins = "0{0}".format(departure_mins)
-    departure_time = "{0}:{1}".format(route["DepartureTimeHour"], departure_mins)
-    departure_output += "\t{0} {1} {2} - Service to: {3},{4}\n".format(route["RouteNumber"], departure_time, day, route["DestinationCity"], route["DestinationCode"])
-
-
-print(arrival_output + departure_output)
+# route_info = "{0} - {1}: From {2},{3} to {4},{5}\n\tType: {6}\n\tDeparting at: {7}:{8} {9}\n\tWith a travel time of {10}:{11}\n\tDriver: {12}, {13} {14}".format(
+#     route["RouteNumber"], route["RouteName"], route["DepartureCity"], route["DepartureCode"], route["DestinationCity"], route["DestinationCode"], 
+#     route["RouteTypeCode"], route["DepartureTimeHour"], route["DepartureTimeMin"] if route['DepartureTimeMin'] > 9 else "0" + str(route['DepartureTimeMin']), 
+#     day, route["TravelTimeHour"], route["TravelTimeMin"] if route["TravelTimeMin"] > 9 else "0" + str(route["TravelTimeMin"]), driver_info["LastName"], 
+#     driver_info["FirstName"], driver_info["ID"])
+# print(route_info)  

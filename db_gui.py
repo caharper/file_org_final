@@ -149,63 +149,72 @@ def get_city_info(city_name):
 
     return(arrival_output + departure_output)
 
-def get_route_info_by_id(id):
+def get_route_info_by_id(route_num):
+
+    # Handle Empty Inputs
+    if len(route_num) == 0:
+        return("Must provide a route number")
     # Submit query
-    #
-    #
-    # Response
-    # Sample data
-    route = {
-        "route_ID" : 12345,
-        "route_name" : 'Mustang',
-        "departure_city" : "Dallas",
-        "departure_city_code" : 4356,
-        "destination_city" : "Houston",
-        "destination_city_code" : 2334, 
-        "route_type" : 1,
-        "departure_time_hours" : '2',
-        "departure_time_minutes" : '30',
-        "travel_time_hours" : '1',
-        "travel_time_minutes" : '15',
-        "driver_first_name" : "Bill",
-        "driver_last_name" : "Smith",
-        "driver_ID" : 3221
-        
-    }
-    route_info = "{0} - {1}: From {2} ({3}) to {4} ({5})\n\tType: {6}\n\tDeparting at: {7}:{8}\n\tWith a travel time of {9}:{10}\n\tDriver: {11}, {12} {13}".format(
-        route["route_ID"], route["route_name"], route["departure_city"], route["departure_city_code"], route["destination_city"], route["destination_city_code"], 
-        route["route_type"], route["departure_time_hours"], route["departure_time_minutes"], route["travel_time_hours"], route["travel_time_minutes"], route["driver_last_name"], 
-        route["driver_first_name"], route["driver_ID"])
+    matching_route = database.get_by_route(route_num)
+
+    # Handle Empty Response
+    if len(matching_route) == 0:
+        return("No routes with the route number: {0}".format(route_num))
+
+    matching_route = matching_route[0]
+    # Format Response
+    route = matching_route[0]
+    day = day_dict[matching_route[1]][0]
+    driver_info = matching_route[2]
+
+    route_info = "{0} - {1}: From {2},{3} to {4},{5}\n\tType: {6}\n\tDeparting at: {7}:{8} {9}\n\tWith a travel time of {10}:{11}\n\tDriver: {12}, {13} {14}".format(
+        route["RouteNumber"], route["RouteName"], route["DepartureCity"], route["DepartureCode"], route["DestinationCity"], route["DestinationCode"], 
+        route["RouteTypeCode"], route["DepartureTimeHour"], route["DepartureTimeMin"] if route['DepartureTimeMin'] > 9 else "0" + str(route['DepartureTimeMin']), 
+        day, route["TravelTimeHour"], route["TravelTimeMin"] if route["TravelTimeMin"] > 9 else "0" + str(route["TravelTimeMin"]), driver_info["LastName"], 
+        driver_info["FirstName"], driver_info["ID"])
     return(route_info)  
 
 def get_route_info_by_city(city_1, city_2):
+    # Handle Empty Inputs
+    if len(city_1) == 0 or len(city_2) == 0:
+        return("Must provide two city names")
     # Submit query
-    #
-    #
-    # Response
-    # Sample data
-    route = {
-        "route_ID" : 12345,
-        "route_name" : 'Mustang',
-        "departure_city" : "Dallas",
-        "departure_city_code" : 4356,
-        "destination_city" : "Houston",
-        "destination_city_code" : 2334, 
-        "route_type" : 1,
-        "departure_time_hours" : '2',
-        "departure_time_minutes" : '30',
-        "travel_time_hours" : '1',
-        "travel_time_minutes" : '15',
-        "driver_first_name" : "Bill",
-        "driver_last_name" : "Smith",
-        "driver_ID" : 3221
+    routes = database.get_is_there_a_route(city_1, city_2)
+
+    # Handle Empty Response
+    if len(routes) == 0:
+        return("No routes between {0} and {1}".format(city_1, city_2))
+
+    # Format Response
+    # route = {
+    #     "route_ID" : 12345,
+    #     "route_name" : 'Mustang',
+    #     "departure_city" : "Dallas",
+    #     "departure_city_code" : 4356,
+    #     "destination_city" : "Houston",
+    #     "destination_city_code" : 2334, 
+    #     "route_type" : 1,
+    #     "departure_time_hours" : '2',
+    #     "departure_time_minutes" : '30',
+    #     "travel_time_hours" : '1',
+    #     "travel_time_minutes" : '15',
+    #     "driver_first_name" : "Bill",
+    #     "driver_last_name" : "Smith",
+    #     "driver_ID" : 3221
         
-    }
-    route_info = "{0} - {1}: From {2} ({3}) to {4} ({5})\n\tType: {6}\n\tDeparting at: {7}:{8}\n\tWith a travel time of {9}:{10}\n\tDriver: {11}, {12} {13}".format(
-        route["route_ID"], route["route_name"], route["departure_city"], route["departure_city_code"], route["destination_city"], route["destination_city_code"], 
-        route["route_type"], route["departure_time_hours"], route["departure_time_minutes"], route["travel_time_hours"], route["travel_time_minutes"], route["driver_last_name"], 
-        route["driver_first_name"], route["driver_ID"])
-    return(route_info)  
+    # }
+    routes_info = ""
+    for r in routes:
+        route = r[0]
+        day = day_dict[r[1]][0]
+        driver_info = r[2]
+        route_info = "{0} - {1}: From {2},{3} to {4},{5}\n\tType: {6}\n\tDeparting at: {7}:{8} {9}\n\tWith a travel time of {10}:{11}\n\tDriver: {12}, {13} {14}".format(
+            route["RouteNumber"], route["RouteName"], route["DepartureCity"], route["DepartureCode"], route["DestinationCity"], route["DestinationCode"], 
+            route["RouteTypeCode"], route["DepartureTimeHour"], route["DepartureTimeMin"] if route['DepartureTimeMin'] > 9 else "0" + str(route['DepartureTimeMin']), 
+            day, route["TravelTimeHour"], route["TravelTimeMin"] if route["TravelTimeMin"] > 9 else "0" + str(route["TravelTimeMin"]), driver_info["LastName"], 
+            driver_info["FirstName"], driver_info["ID"])
+        routes_info += route_info
+    return(routes_info)  
 
 
 ######################################################## EVENT LOOP ########################################################
@@ -276,12 +285,12 @@ while True:  # Event Loop
 
         elif active_query == 'find_route':
             if search_by_driver:
-                print('Submitting driver ID: {0}'.format(window['input_1'].Get()))
-                window['output'].update(value=get_route_info_by_id(1))
+                print('Submitting Route ID: {0}'.format(window['input_1'].Get()))
+                window['output'].update(value=get_route_info_by_id(window['input_1'].Get()))
 
             else:
                 print('Submitting cities : {0} {1}'.format(window['input_1'].Get(), window['input_2'].Get()))
-                window['output'].update(value=get_route_info_by_city(1,2))
+                window['output'].update(value=get_route_info_by_city(window['input_1'].Get(), window['input_2'].Get()))
 
     if event == 'load_data':
         # Submit path to back end
