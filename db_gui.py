@@ -110,42 +110,6 @@ def get_city_info(city_name):
         return("No routes through {0}".format(city_name))
 
     # Format Response
-    d_routes = [
-        {"ID" : 12345,
-        "departure_time" : "12:00",
-        "day" : "Monday",
-        "destination_city" : "Dallas"},
-        {"ID" : 12336,
-        "departure_time" : "2:00",
-        "day" : "Tuesday",
-        "destination_city" : "Miami"},
-        {"ID" : 125,
-        "departure_time" : "4:00",
-        "day" : "Thursday",
-        "destination_city" : "Atlanta"}
-    ]
-    a_routes = [
-        {"ID" : 12345,
-        "arrival_time" : "12:00",
-        "day" : "Monday",
-        "source_city" : "Dallas"},
-        {"ID" : 12336,
-        "arrival_time" : "2:00",
-        "day" : "Tuesday",
-        "source_city" : "Miami"},
-        {"ID" : 125,
-        "arrival_time" : "4:00",
-        "day" : "Thursday",
-        "source_city" : "Atlanta"}
-    ]
-    departures = "Departures:\n"
-    for route in d_routes:
-        departures += "\t{0} {1} {2} Service to: {3}\n".format(route["ID"], route["departure_time"], route["day"], route["destination_city"])
-
-    arrivals = "Arrivals:\n"
-    for route in a_routes:
-        arrivals += "\t{0} {1} {2} Service from: {3}\n".format(route["ID"], route["arrival_time"], route["day"], route["source_city"])
-
     # Arrivals
     arrivals = routes[0]
     arrival_output = "Arrivals:\n"
@@ -176,21 +140,14 @@ def get_city_info(city_name):
     
     for r in departures:
         route = r[0]
-        day = day_dict[r[1][0]] if len(r[1]) > 0 else "" 
-        arrival_mins = route["DepartureTimeMin"]
-        if arrival_mins < 10:
-            arrival_mins = "0{0}".format(arrival_mins)
-        arrival_time = "{0}:{1}".format(route["DepartureTimeHour"] + route["TravelTimeHour"], arrival_mins)
-        arrival_output += "\t{0} {1} {2} - Service from: {3},{4}\n".format(route["RouteNumber"], arrival_time, day, route["Departurecity"], route["DeparturCode"])
-    
+        day = day_dict[r[1][0]][0] if len(r[1]) > 0 else "" 
+        departure_mins = route["DepartureTimeMin"]
+        if departure_mins < 10:
+            departure_mins = "0{0}".format(departure_mins)
+        departure_time = "{0}:{1}".format(route["DepartureTimeHour"], departure_mins)
+        departure_output += "\t{0} {1} {2} - Service to: {3},{4}\n".format(route["RouteNumber"], departure_time, day, route["DestinationCity"], route["DestinationCode"])
 
-
-
-
-
-
-
-    return(departures+ arrivals)
+    return(arrival_output + departure_output)
 
 def get_route_info_by_id(id):
     # Submit query
@@ -315,7 +272,7 @@ while True:  # Event Loop
 
         elif active_query == 'city_info':
             print('Submitting city name: {0}'.format(window['input_1'].Get()))
-            window['output'].update(value=get_city_info(1))
+            window['output'].update(value=get_city_info(window['input_1'].Get()))
 
         elif active_query == 'find_route':
             if search_by_driver:

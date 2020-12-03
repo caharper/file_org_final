@@ -46,4 +46,20 @@ for r in arrivals:
     arrival_time = "{0}:{1}".format(arrival_hour, arrival_mins)
     arrival_output += "\t{0} {1} {2} - Service from: {3},{4}\n".format(route["RouteNumber"], arrival_time, day, route["DepartureCity"], route["DepartureCode"])
 
-print(arrival_output)
+
+departures = res[1]
+departure_output = "Departures:\n"
+if len(departures) == 0:
+    departure_output += "\tNone\n"
+
+for r in departures:
+    route = r[0]
+    day = day_dict[r[1][0]][0] if len(r[1]) > 0 else "" 
+    departure_mins = route["DepartureTimeMin"]
+    if departure_mins < 10:
+        departure_mins = "0{0}".format(departure_mins)
+    departure_time = "{0}:{1}".format(route["DepartureTimeHour"], departure_mins)
+    departure_output += "\t{0} {1} {2} - Service to: {3},{4}\n".format(route["RouteNumber"], departure_time, day, route["DestinationCity"], route["DestinationCode"])
+
+
+print(arrival_output + departure_output)
