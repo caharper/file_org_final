@@ -696,8 +696,21 @@ class AssignmentReader(DaskReader):
         drive_hr, drive_min = route_df['travel_time_hr'], route_df['travel_time_min']
         dest_city, dest_state = route_df['dest_city_name'], route_df['dest_state_code']
         src_city, src_state = route_df['src_city_name'], route_df['src_state_code']
+        route_type = route_df['route_type']
         
-        return [start_hr, start_min, drive_hr, drive_min, dest_city, dest_state, src_city, src_state]
+        return [start_hr, start_min, drive_hr, drive_min, dest_city, dest_state, src_city, src_state, route_type]
+
+    def _verify_day_of_week(self, route_day_int, assigned_day):
+        '''Assuming that Friday is a weekday only'''
+        
+        # Weekday only
+        if route_day_int == '1': return assigned_day in self.valid_days[:5]
+        # Weekends only
+        if route_day_int == '2': return assigned_day in self.valid_days[5:]
+
+        # Runs daily will always return true since we have already verified the day is a real day
+        return True
+
             
     def _check_person_schedule(self, assignments_df):
         # now have the dataframe in pandas
@@ -745,10 +758,14 @@ class AssignmentReader(DaskReader):
             # get route info
             day_of_week = row['day_of_week']
             route_info = self._get_route_info(route_id)
-            route_info = tuple([day_of_week] + route_info)
+            route_type = route_info[-1]
+            route_info = tuple([day_of_week] + route_info[:-1])
+
+            # Check if the day is valid (matches when the route runs)
+            day_is_valid = self._verify_day_of_week(route_type, day_of_week)
         
             # check if row can be inserted
-            if driver.is_availiable(*route_info):
+            if driver.is_availiable(*route_info) and day_is_valid:
                 # add busy time
                 driver.add_busy_time(*route_info)
             else:
@@ -788,7 +805,7 @@ class AssignmentReader(DaskReader):
         
         # save files
         self._combine_csvs()
-        
+
     def _verify_attributes(self):
         '''Verifies basic attributes in the table. 
         
