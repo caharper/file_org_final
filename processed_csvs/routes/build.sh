@@ -1,1 +1,1 @@
-mongoimport --type csv -d test -c routes --headerline --drop routes.csv
+mongoimport --type csv -d bus_db -c routes --fields="RouteNumber,RouteName,DepartureCity,DepartureCode,DestinationCity,DestinationCode,RouteTypeCode,DepartureTimeHour,DepartureTimeMin,TravelTimeHour,TravelTimeMin" --drop routes.csv

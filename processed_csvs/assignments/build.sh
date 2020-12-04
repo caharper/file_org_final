@@ -1,1 +1,1 @@
-mongoimport --type csv -d test -c assignments --headerline --drop assignments.csv
+mongoimport --type csv -d bus_db -c assignments --Fields="DriverID,RouteNumber,Day" --drop assignments.csv

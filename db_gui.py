@@ -1,5 +1,6 @@
 import PySimpleGUI as sg
 import os
+from server import persistence
 
 #sg.theme('BluePurple')
 
@@ -51,128 +52,169 @@ print(window['find_route'].get_size())
 
 active_query = "driver_info"
 search_by_driver = True
+database = 0
+day_dict = {
+    "s" : ("Sunday",0),
+    "M" : ("Monday",1),
+    "T" : ("Tuesday",2),
+    "W" : ("Wednesday",3),
+    "U" : ("Thursday",4), 
+    "F" : ("Friday",5),
+    "S" : ("Saurday",6),
+    "0" : "s",
+    "1" : "M",
+    "2" : "T",
+    "3" : "W",
+    "4" : "U",
+    "5" : "F", 
+    "6" : "S"
+}
 
 ######################################################## QUERY HANDLERS ########################################################
 
 # Submit query and format response
 def get_driver_info(first_name, last_name):
+
+    # Handle Empty Inputs
+    if len(first_name) == 0 or len(last_name) == 0:
+        return("Must provide a first and last name")
     # Submit query
-    #
-    #
-    # Response
-    #Sample Driver
-    driver = {
-        "ID" : 1234,
-        "Lastname" : "Lee",
-        "Firstname" : "Matthew",
-        "Age" : 22,
-        "Hometown" : "Bedford",
-        "Homestate" : "Texas"
-    }
-    driver_info = "{0} {1}, {2}\n\tAge: {3}\n\tHometown: {4}, {5}\n\t".format(driver["ID"], driver["Lastname"], driver["Firstname"], driver["Age"], driver["Hometown"], driver["Homestate"])
-    route_assignments = "Routes:\n\t\t{0} - {1}".format(523, "Mustang")
-    return(driver_info + route_assignments) 
+    drivers = database.get_by_name(first_name, last_name)
+
+    # Handle Empty Response
+    if len(drivers) == 0:
+        return("No drivers named {0} {1}".format(first_name, last_name))
+
+    # Format Response
+    output = ""
+    for d in drivers:
+        driver = d[0]
+        driver_info = "{0} {1}, {2}\n\tAge: {3}\n\tHometown: {4}, {5}\n".format(driver["ID"], driver["LastName"], driver["FirstName"], driver["Age"], driver["City"], driver["State"])
+        assigned_routes = d[1]
+        route_assignments = "\tRoutes:\n"
+        for r in assigned_routes:
+            route_assignments += "\t\t{0} - {1}: {2},{3} to {4},{5}\n".format(r['RouteNumber'], r['RouteName'], r['DepartureCity'], r['DepartureCode'], r['DestinationCity'], r['DestinationCode'])
+        output += (driver_info + route_assignments)
+    return(output) 
 
 def get_city_info(city_name):
-    # Submit query
-    #
-    #
-    # Response
-    #Sample output
-    d_routes = [
-        {"ID" : 12345,
-        "departure_time" : "12:00",
-        "day" : "Monday",
-        "destination_city" : "Dallas"},
-        {"ID" : 12336,
-        "departure_time" : "2:00",
-        "day" : "Tuesday",
-        "destination_city" : "Miami"},
-        {"ID" : 125,
-        "departure_time" : "4:00",
-        "day" : "Thursday",
-        "destination_city" : "Atlanta"}
-    ]
-    a_routes = [
-        {"ID" : 12345,
-        "arrival_time" : "12:00",
-        "day" : "Monday",
-        "source_city" : "Dallas"},
-        {"ID" : 12336,
-        "arrival_time" : "2:00",
-        "day" : "Tuesday",
-        "source_city" : "Miami"},
-        {"ID" : 125,
-        "arrival_time" : "4:00",
-        "day" : "Thursday",
-        "source_city" : "Atlanta"}
-    ]
-    departures = "Departures:\n"
-    for route in d_routes:
-        departures += "\t{0} {1} {2} Service to: {3}\n".format(route["ID"], route["departure_time"], route["day"], route["destination_city"])
 
-    arrivals = "Arrivals:\n"
-    for route in a_routes:
-        arrivals += "\t{0} {1} {2} Service from: {3}\n".format(route["ID"], route["arrival_time"], route["day"], route["source_city"])
-    return(departures+ arrivals)
-
-def get_route_info_by_id(id):
+    # Handle Empty Inputs
+    if len(city_name) == 0:
+        return("Must provide a city name")
     # Submit query
-    #
-    #
-    # Response
-    # Sample data
-    route = {
-        "route_ID" : 12345,
-        "route_name" : 'Mustang',
-        "departure_city" : "Dallas",
-        "departure_city_code" : 4356,
-        "destination_city" : "Houston",
-        "destination_city_code" : 2334, 
-        "route_type" : 1,
-        "departure_time_hours" : '2',
-        "departure_time_minutes" : '30',
-        "travel_time_hours" : '1',
-        "travel_time_minutes" : '15',
-        "driver_first_name" : "Bill",
-        "driver_last_name" : "Smith",
-        "driver_ID" : 3221
+    routes = database.get_by_city(city_name)
+
+    # Handle Empty Response
+    if len(routes[0]) == 0 and len(routes[1]) == 0:
+        return("No routes through {0}".format(city_name))
+
+    # Format Response
+    # Arrivals
+    arrivals = routes[0]
+    arrival_output = "Arrivals:\n"
+    if len(arrivals) == 0:
+        arrival_output += "\tNone\n"
+    
+    for r in arrivals:
+        route = r[0]
+        arrival_mins = route["DepartureTimeMin"] + route["TravelTimeMin"]
+        if arrival_mins < 10:
+            arrival_mins = "0{0}".format(arrival_mins)
+        arrival_hour = (route["DepartureTimeHour"] + route["TravelTimeHour"])%24
+        days_traveled = int((route["DepartureTimeHour"] + route["TravelTimeHour"])/24)
+        day = ""
+        if len(r[1]) > 0:
+            arr_day = day_dict[r[1][0]][1]
+            arr_day = (arr_day + days_traveled)%7
+            day = day_dict[day_dict[str(arr_day)]][0]
         
-    }
-    route_info = "{0} - {1}: From {2} ({3}) to {4} ({5})\n\tType: {6}\n\tDeparting at: {7}:{8}\n\tWith a travel time of {9}:{10}\n\tDriver: {11}, {12} {13}".format(
-        route["route_ID"], route["route_name"], route["departure_city"], route["departure_city_code"], route["destination_city"], route["destination_city_code"], 
-        route["route_type"], route["departure_time_hours"], route["departure_time_minutes"], route["travel_time_hours"], route["travel_time_minutes"], route["driver_last_name"], 
-        route["driver_first_name"], route["driver_ID"])
+        arrival_time = "{0}:{1}".format(arrival_hour, arrival_mins)
+        arrival_output += "\t{0} {1} {2} - Service from: {3},{4}\n".format(route["RouteNumber"], arrival_time, day, route["DepartureCity"], route["DepartureCode"])
+
+    # Departures
+    departures = routes[1]
+    departure_output = "Departures:\n"
+    if len(departures) == 0:
+        departure_output += "\tNone\n"
+    
+    for r in departures:
+        route = r[0]
+        day = day_dict[r[1][0]][0] if len(r[1]) > 0 else "" 
+        departure_mins = route["DepartureTimeMin"]
+        if departure_mins < 10:
+            departure_mins = "0{0}".format(departure_mins)
+        departure_time = "{0}:{1}".format(route["DepartureTimeHour"], departure_mins)
+        departure_output += "\t{0} {1} {2} - Service to: {3},{4}\n".format(route["RouteNumber"], departure_time, day, route["DestinationCity"], route["DestinationCode"])
+
+    return(arrival_output + departure_output)
+
+def get_route_info_by_id(route_num):
+
+    # Handle Empty Inputs
+    if len(route_num) == 0:
+        return("Must provide a route number")
+    # Submit query
+    matching_route = database.get_by_route(route_num)
+
+    # Handle Empty Response
+    if len(matching_route) == 0:
+        return("No assigned routes with the route number: {0}".format(route_num))
+
+    matching_route = matching_route[0]
+    # Format Response
+    route = matching_route[0]
+    day = day_dict[matching_route[1]][0]
+    driver_info = matching_route[2]
+
+    route_info = "{0} - {1}: From {2},{3} to {4},{5}\n\tType: {6}\n\tDeparting at: {7}:{8} {9}\n\tWith a travel time of {10}:{11}\n\tDriver: {12}, {13} {14}".format(
+        route["RouteNumber"], route["RouteName"], route["DepartureCity"], route["DepartureCode"], route["DestinationCity"], route["DestinationCode"], 
+        route["RouteTypeCode"], route["DepartureTimeHour"], route["DepartureTimeMin"] if route['DepartureTimeMin'] > 9 else "0" + str(route['DepartureTimeMin']), 
+        day, route["TravelTimeHour"], route["TravelTimeMin"] if route["TravelTimeMin"] > 9 else "0" + str(route["TravelTimeMin"]), driver_info["LastName"], 
+        driver_info["FirstName"], driver_info["ID"])
     return(route_info)  
 
 def get_route_info_by_city(city_1, city_2):
+    # Handle Empty Inputs
+    if len(city_1) == 0 or len(city_2) == 0:
+        return("Must provide two city names")
     # Submit query
-    #
-    #
-    # Response
-    # Sample data
-    route = {
-        "route_ID" : 12345,
-        "route_name" : 'Mustang',
-        "departure_city" : "Dallas",
-        "departure_city_code" : 4356,
-        "destination_city" : "Houston",
-        "destination_city_code" : 2334, 
-        "route_type" : 1,
-        "departure_time_hours" : '2',
-        "departure_time_minutes" : '30',
-        "travel_time_hours" : '1',
-        "travel_time_minutes" : '15',
-        "driver_first_name" : "Bill",
-        "driver_last_name" : "Smith",
-        "driver_ID" : 3221
+    routes = database.get_is_there_a_route(city_1, city_2)
+
+    # Handle Empty Response
+    if len(routes) == 0:
+        return("No assigned routes between {0} and {1}".format(city_1, city_2))
+
+    # Format Response
+    # route = {
+    #     "route_ID" : 12345,
+    #     "route_name" : 'Mustang',
+    #     "departure_city" : "Dallas",
+    #     "departure_city_code" : 4356,
+    #     "destination_city" : "Houston",
+    #     "destination_city_code" : 2334, 
+    #     "route_type" : 1,
+    #     "departure_time_hours" : '2',
+    #     "departure_time_minutes" : '30',
+    #     "travel_time_hours" : '1',
+    #     "travel_time_minutes" : '15',
+    #     "driver_first_name" : "Bill",
+    #     "driver_last_name" : "Smith",
+    #     "driver_ID" : 3221
         
-    }
-    route_info = "{0} - {1}: From {2} ({3}) to {4} ({5})\n\tType: {6}\n\tDeparting at: {7}:{8}\n\tWith a travel time of {9}:{10}\n\tDriver: {11}, {12} {13}".format(
-        route["route_ID"], route["route_name"], route["departure_city"], route["departure_city_code"], route["destination_city"], route["destination_city_code"], 
-        route["route_type"], route["departure_time_hours"], route["departure_time_minutes"], route["travel_time_hours"], route["travel_time_minutes"], route["driver_last_name"], 
-        route["driver_first_name"], route["driver_ID"])
-    return(route_info)  
+    # }
+    routes_info = ""
+    for r in routes:
+        route = r[0]
+        day = day_dict[r[1]][0]
+        driver_info = r[2]
+        route_info = "{0} - {1}: From {2},{3} to {4},{5}\n\tType: {6}\n\tDeparting at: {7}:{8} {9}\n\tWith a travel time of {10}:{11}\n\tDriver: {12}, {13} {14}".format(
+            route["RouteNumber"], route["RouteName"], route["DepartureCity"], route["DepartureCode"], route["DestinationCity"], route["DestinationCode"], 
+            route["RouteTypeCode"], route["DepartureTimeHour"], route["DepartureTimeMin"] if route['DepartureTimeMin'] > 9 else "0" + str(route['DepartureTimeMin']), 
+            day, route["TravelTimeHour"], route["TravelTimeMin"] if route["TravelTimeMin"] > 9 else "0" + str(route["TravelTimeMin"]), driver_info["LastName"], 
+            driver_info["FirstName"], driver_info["ID"])
+        routes_info += route_info
+    return(routes_info)  
 
 
 ######################################################## EVENT LOOP ########################################################
@@ -209,7 +251,7 @@ while True:  # Event Loop
         window['find_route'].SetFocus(force=False)
         window['section_header'].update(value="Find Route")
         if search_by_driver:
-            window['input_label_1'].update(value='Bus ID', visible=True)
+            window['input_label_1'].update(value='Route ID', visible=True)
             window['input_label_2'].update(visible=False)
             window['input_1'].update(visible=True, value='')
             window['input_2'].update(visible=False, value='')
@@ -231,30 +273,44 @@ while True:  # Event Loop
             
     if event == 'search':
         # Submit appropriate query from inputs
-        if active_query == 'driver_info':
+        if database == 0:
+            window['output'].update(value="No Data in Database\nLoad data before submitting queries")
+        elif active_query == 'driver_info':
             print('Submitting Driver name: {0} {1}'.format(window['input_1'].Get(), window['input_2'].Get()))
-            window['output'].update(value=get_driver_info(1,2))
+            window['output'].update(value=get_driver_info(window['input_1'].Get(),window['input_2'].Get()))
 
         elif active_query == 'city_info':
             print('Submitting city name: {0}'.format(window['input_1'].Get()))
-            window['output'].update(value=get_city_info(1))
+            window['output'].update(value=get_city_info(window['input_1'].Get()))
 
         elif active_query == 'find_route':
             if search_by_driver:
-                print('Submitting driver ID: {0}'.format(window['input_1'].Get()))
-                window['output'].update(value=get_route_info_by_id(1))
+                print('Submitting Route ID: {0}'.format(window['input_1'].Get()))
+                window['output'].update(value=get_route_info_by_id(window['input_1'].Get()))
 
             else:
                 print('Submitting cities : {0} {1}'.format(window['input_1'].Get(), window['input_2'].Get()))
-                window['output'].update(value=get_route_info_by_city(1,2))
+                window['output'].update(value=get_route_info_by_city(window['input_1'].Get(), window['input_2'].Get()))
 
     if event == 'load_data':
         # Submit path to back end
         route_path = window['route_path'].Get()
         driver_path = window['driver_path'].Get()
         assignments_path = window['assignments_path'].Get()
-        #print('validation.py {0} {1} {2}'.format(route_path, driver_path, assignments_path))
-        os.system('validation.py {0} {1} {2}'.format(route_path, driver_path, assignments_path))
+
+        # Start Mongodb Instance
+        #os.system('')
+        
+        # Validate Input Data
+        os.system('python validation.py --"{0}" --"{1}" --"{2}"'.format(route_path, driver_path, assignments_path))
+        
+        # Load validated data into mongo
+        os.system('mongoimport --type csv -d bus_db -c drivers --fields="ID,FirstName,LastName,Age,City,State" --drop ./processed_csvs/drivers/drivers.csv')
+        os.system('mongoimport --type csv -d bus_db -c assignments --fields="DriverID,RouteNumber,Day" --drop ./processed_csvs/assignments/assignments.csv')
+        os.system('mongoimport --type csv -d bus_db -c routes --fields="RouteNumber,RouteName,DepartureCity,DepartureCode,DestinationCity,DestinationCode,RouteTypeCode,DepartureTimeHour,DepartureTimeMin,TravelTimeHour,TravelTimeMin" --drop ./processed_csvs/routes/routes.csv')
+        
+        # Create Query object
+        database = persistence.Persistence()
 
 window.close()
 

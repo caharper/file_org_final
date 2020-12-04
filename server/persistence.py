@@ -6,7 +6,7 @@ class Persistence:
     
     def __init__(self):
         client = MongoClient()
-        self.db = client.test
+        self.db = client.bus_db
         self.driver_collection = self.db.drivers
         self.route_collection = self.db.routes
         self.assignment_collection = self.db.assignments
@@ -26,8 +26,8 @@ class Persistence:
         print(first_name, last_name)
         
         query = {'$and':[
-            {"First": {"$in" :[first_name]}},
-            {"Last": {"$in" :[last_name]}},
+            {"FirstName": {"$in" :[first_name]}},
+            {"LastName": {"$in" :[last_name]}},
             ]}
 
         cursor_driver = self.driver_collection.find(query)
@@ -60,7 +60,7 @@ class Persistence:
         for doc in cursor_routes:
             for driver in driver_assignment_dict:
                 if doc.get("RouteNumber") in driver_assignment_dict[driver]:
-                    driver_route_dict[driver].append(str(doc))
+                    driver_route_dict[driver].append(doc)
         
 
         to_Return = list()
@@ -181,7 +181,7 @@ class Persistence:
                 to_ret = "\nRoute:\n" + str(route_ids[assignment['RouteNumber']])
                 to_ret += "\nOnDay: " + assignment['Day']
                 to_ret += "\nWithDriver:\n" + str(driver_ids[assignment['DriverID']])
-                # print(to_ret)
+                #print(to_ret)
                 to_Return.append((route_ids[assignment['RouteNumber']], assignment['Day'], driver_ids[assignment['DriverID']]))
                 #to_Return.append(to_ret)
                 
@@ -256,9 +256,10 @@ class Persistence:
         for driver in assignment_ids:
             
             for assignment in assignment_ids[driver]:
-                to_ret = "\nRoute:\n" + str(route_ids[assignment['RouteNumber']])
-                to_ret += "\nOnDay: " + assignment['Day']
-                to_ret += "\nWithDriver:\n" + str(driver_ids[assignment['DriverID']])
+                to_ret = []
+                to_ret.append(route_ids[assignment['RouteNumber']])
+                to_ret.append(assignment['Day'])
+                to_ret.append(driver_ids[assignment['DriverID']])
                 
                 to_Return.append(to_ret)
         print(len(to_Return))
