@@ -186,23 +186,6 @@ def get_route_info_by_city(city_1, city_2):
         return("No assigned routes between {0} and {1}".format(city_1, city_2))
 
     # Format Response
-    # route = {
-    #     "route_ID" : 12345,
-    #     "route_name" : 'Mustang',
-    #     "departure_city" : "Dallas",
-    #     "departure_city_code" : 4356,
-    #     "destination_city" : "Houston",
-    #     "destination_city_code" : 2334, 
-    #     "route_type" : 1,
-    #     "departure_time_hours" : '2',
-    #     "departure_time_minutes" : '30',
-    #     "travel_time_hours" : '1',
-    #     "travel_time_minutes" : '15',
-    #     "driver_first_name" : "Bill",
-    #     "driver_last_name" : "Smith",
-    #     "driver_ID" : 3221
-        
-    # }
     routes_info = ""
     for r in routes:
         route = r[0]
